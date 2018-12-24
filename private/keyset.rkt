@@ -1,7 +1,10 @@
 #lang rebellion/private/dependencies/layer1
 
 (provide
+ keyset
  (contract-out
+  [sorted-keyword-list->keyset (-> (listof keyword?) keyset?)]
+  [keyset->sorted-keyword-list (-> keyset? (listof keyword?))]
   [keyset? predicate?]
   [keyset-size (-> keyset? natural?)]
   [keyset-ref
@@ -111,3 +114,9 @@
     (check-equal? (~v keys) "(keyset #:apple #:banana #:orange)")
     (check-equal? (~a keys) "(keyset #:apple #:banana #:orange)")
     (check-equal? (~s keys) "(keyset #:apple #:banana #:orange)")))
+
+(define (sorted-keyword-list->keyset keywords)
+  (make-keyset (vector->immutable-vector (list->vector keywords))))
+
+(define (keyset->sorted-keyword-list keys)
+  (vector->list (keyset-sorted-vector keys)))

@@ -27,9 +27,31 @@
           this-syntax
           vector->immutable-vector)
          ->
+         vector->list
+         unconstrained-domain->
+         sub1
+         procedure-arity-includes/c
+         any/c
+         integer-in
+         procedure-reduce-keyword-arity
          values
+         make-keyword-procedure
+         string->symbol
+         begin
+         keyword->string
+         make-struct-field-accessor
+         current-inspector
          define-values
+         λ
+         make-struct-type
+         list-ref
+         build-list
+         apply
          ->i
+         listof
+         vector->immutable-vector
+         ->*
+         list->vector
          ...
          #%app
          #%datum
