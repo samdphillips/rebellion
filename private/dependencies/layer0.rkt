@@ -48,6 +48,7 @@
          exn:fail:contract?
          first
          flat-contract?
+         for-syntax
          gen:custom-write
          gen:equal+hash
          gensym
@@ -77,6 +78,8 @@
          submod
          symbol->string
          symbol?
+         syntax
+         syntax-e
          unless
          value-contract
          void
