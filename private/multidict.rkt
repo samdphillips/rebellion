@@ -15,12 +15,14 @@
   [multidict-contains-key? (-> multidict? any/c boolean?)]
   [multidict-contains-value? (-> multidict? any/c boolean?)]
   [multidict-contains-entry? (-> multidict? entry? boolean?)]
+  [multidict-add (-> multidict? any/c any/c multidict?)]
   [multidict->hash
    (-> multidict?
        (hash/c any/c nonempty-immutable-set? #:immutable #t #:flat? #t))]
   [empty-multidict empty-multidict?]
   [empty-multidict? predicate/c]
-  [nonempty-multidict? predicate/c]))
+  [nonempty-multidict? predicate/c]
+  [multidict/c (-> contract? contract? contract?)]))
 
 (require racket/list
          racket/math
@@ -30,13 +32,16 @@
          rebellion/collection/entry
          rebellion/collection/multiset
          rebellion/collection/keyset
-         rebellion/type/record)
+         rebellion/type/record
+         syntax/parse/define)
 
 (module+ test
   (require (submod "..")
            rackunit))
 
 ;@------------------------------------------------------------------------------
+
+(define-logger rebellion/collection/multidict)
 
 (define key-value-list/c
   (or/c null?
@@ -83,6 +88,24 @@
     (for/sum ([vs (in-immutable-hash-values backing-hash)])
       (set-count vs)))
   (constructor:multidict #:backing-hash backing-hash #:size size))
+
+(define (multidict-add dict k v)
+  (define existing-hash (multidict-backing-hash dict))
+  (define existing-values (hash-ref existing-hash k (set)))
+  (if (set-member? existing-values v)
+      dict
+      (constructor:multidict
+       #:backing-hash (hash-set existing-hash k (set-add existing-values v))
+       #:size (add1 (multidict-size dict)))))
+
+(define-simple-macro (for/multidict clauses body ... tail-expr)
+  #:with original this-syntax
+  (for/fold/derived original
+    ([dict empty-multidict])
+    clauses
+    body ...
+    (define e tail-expr)
+    (multidict-add dict (entry-key e) (entry-value e))))
 
 (define (multidict-keys dict)
   (list->multiset
@@ -176,3 +199,7 @@
     (check-false (multidict-contains-entry? dict (entry 'a 3)))
     (check-false (multidict-contains-entry? dict (entry 'd 1)))
     (check-false (multidict-contains-entry? dict (entry 'a 5)))))
+
+(define (multidict/c key-contract value-contract)
+  (log-rebellion/collection/multidict-warning "multidict/c not yet implemented")
+  multidict?)
