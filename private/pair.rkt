@@ -4,6 +4,7 @@
 
 (provide
  (contract-out
+  #:unprotected-submodule freedom
   [pair (-> any/c any/c any/c)]
   [pair? (-> any/c boolean?)]
   [pair-first (-> pair? any/c)]

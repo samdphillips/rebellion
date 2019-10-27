@@ -4,6 +4,7 @@
 
 (provide
  (contract-out
+  #:unprotected-submodule freedom
   [empty-list empty-list?]
   [empty-list? predicate/c]
   [nonempty-list? predicate/c]
