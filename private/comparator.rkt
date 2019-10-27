@@ -4,6 +4,7 @@
 
 (provide
  (contract-out
+  #:unprotected-submodule freedom
   [comparator? predicate/c]
   [compare (-> comparator? any/c any/c comparison?)]
   [make-comparator

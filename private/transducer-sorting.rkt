@@ -8,10 +8,10 @@
 
 (require racket/bool
          racket/sequence
-         rebellion/base/comparator
+         (submod rebellion/private/comparator freedom)
          rebellion/base/option
          rebellion/base/variant
-         rebellion/collection/list
+         (submod rebellion/private/list freedom)
          rebellion/private/impossible
          rebellion/streaming/transducer/base
          rebellion/type/record
