@@ -31,6 +31,11 @@
          rebellion/type/record
          syntax/parse/define)
 
+(module* internal #f
+  (provide (rename-out [constructor:table make-table])
+           table-backing-column-vectors
+           table-size))
+
 (module+ test
   (require (submod "..")
            racket/format

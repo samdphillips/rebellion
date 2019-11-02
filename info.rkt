@@ -10,6 +10,7 @@
 
 (define deps
   (list "base"
+        "lens-lib"
         "reprovide-lang"))
 
 (define build-deps
