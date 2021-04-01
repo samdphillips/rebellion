@@ -34,12 +34,15 @@
   [into-multidict (reducer/c entry? multidict?)]))
 
 (require (for-syntax racket/base)
+         racket/dict
+         racket/generic
          racket/list
          racket/math
          racket/sequence
          racket/set
          racket/stream
          racket/struct
+         rebellion/base/pair
          rebellion/collection/entry
          rebellion/collection/multiset
          rebellion/collection/keyset
@@ -89,7 +92,41 @@
     (for*/stream ([(k vs) (in-immutable-hash backing-hash)]
                   [v (in-immutable-set vs)])
       (entry k v)))
-  (list (cons prop:equal+hash equal+hash)
+  (define prop:gen:dict/multidict
+    (make-generic-struct-type-property
+      gen:dict
+      (define (dict-ref dict key [default #f])
+        (multidict-ref dict key))
+      ;; XXX: dict-set!
+      ;; XXX: dict-set
+      ;; XXX: dict-remove!
+      (define (dict-remove dict key)
+        (multidict-replace-values dict key (set)))
+      (define/guard (dict-iterate-first dict)
+        (define backing-hash (multidict-backing-hash dict))
+        (define hpos (hash-iterate-first backing-hash))
+        (guard hpos else hpos)
+        (define spos (hash-iterate-value backing-hash hpos))
+        (pair hpos spos))
+      (define/guard (dict-iterate-next dict pos)
+        (define old-hpos (pair-first pos))
+        (define old-spos (pair-second pos))
+        (define new-spos (stream-rest old-spos))
+        (guard (stream-empty? new-spos) else (pair old-hpos new-spos))
+        (define backing-hash (multidict-backing-hash dict))
+        (define new-hpos (hash-iterate-next backing-hash old-hpos))
+        (guard new-hpos else new-hpos)
+        (define new-spos (hash-iterate-value backing-hash new-hpos))
+        (pair new-hpos new-spos))
+      (define (dict-iterate-key dict pos)
+        (hash-iterate-key (multidict-backing-hash dict)
+                          (pair-first pos)))
+      (define (dict-iterate-value dict pos)
+        (stream-first (pair-second pos)))
+      (define (dict-count dict)
+        (multidict-size dict))))
+  (list (cons prop:gen:dict/multidict #f)
+        (cons prop:equal+hash equal+hash)
         (cons prop:sequence sequence)
         (cons prop:custom-write custom-write)))
 
@@ -354,4 +391,32 @@
     (check-true (multidict-contains-entry? dict (entry 'b 3)))
     (check-false (multidict-contains-entry? dict (entry 'a 3)))
     (check-false (multidict-contains-entry? dict (entry 'd 1)))
-    (check-false (multidict-contains-entry? dict (entry 'a 5)))))
+    (check-false (multidict-contains-entry? dict (entry 'a 5))))
+
+  (test-case "dict-ref"
+    (check-equal? (dict-ref dict 'a) (set 1 2))
+    (check-equal? (dict-ref dict 'b) (set 3))
+    (check-equal? (dict-ref dict 'c) (set 1 4))
+    (check-equal? (dict-ref dict 'd) (set)))
+
+  ;; XXX: exception?
+  #;
+  (test-case "dict-set"
+    (check-equal? (dict-set dict 'a 3) (set 1 2 3)))
+
+  ;; XXX: exceptions
+  #; (test-case "dict-set! ...)
+  #; (test-case "dict-remove! ...)
+
+  (test-case "dict-remove"
+    (check-equal? (dict-remove dict 'a)
+                  (multidict 'b 3 'c 1 'c 4)))
+
+  (test-case "dict-count"
+    (check-equal? (dict-count dict) 5))
+
+  ;; tests dict-iterate-* implementation
+  (test-case "dict-map"
+    (check-equal? (list->set
+                    (dict-map dict (lambda (k v) k)))
+                  (set 'a 'b 'c))))
